@@ -1,0 +1,157 @@
+<!-- jsε -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>js&epsilon;&trade;</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: "Courier New", monospace; background: #1e1e1e; color: #d4d4d4; padding: 1rem; }
+
+    .editor {
+      position: relative;
+      width: 100%;
+      max-width: 700px;
+      height: 300px;
+      border: 1px solid #333;
+    }
+
+    .editor pre,
+    .editor textarea {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      margin: 0;
+      padding: 1rem;
+      font-family: "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre;
+      word-wrap: normal;
+      overflow: auto;
+      border: none;
+      tab-size: 4;
+      letter-spacing: normal;
+    }
+
+    .editor pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .editor textarea {
+      background: transparent;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      caret-color: #fff;
+      resize: none;
+      outline: none;
+      z-index: 1;
+    }
+
+    .keyword { color: #569cd6; }
+    .string  { color: #ce9178; }
+    .comment { color: #6a9955; }
+    .number  { color: #b5cea8; }
+
+    button {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1.5rem;
+      background: #0e639c;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    button:hover { background: #1177bb; }
+
+    #output {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: #000;
+      border: 1px solid #333;
+      min-height: 2rem;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-size: 13px;
+      color: #4ec9b0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="editor">
+  <pre id="highlight" aria-hidden="true"></pre>
+  <textarea id="script" spellcheck="false">console.log("Hello, World!");</textarea>
+</div>
+
+<button onclick="runCode()">Execute</button>
+<div id="output"></div>
+
+<script>
+const ta = document.getElementById('script');
+const pre = document.getElementById('highlight');
+const out = document.getElementById('output');
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function highlight(code) {
+  let html = escapeHtml(code);
+
+  const pattern = /("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')|(\/\/[^\n]*)|(\/\*[\s\S]*?\*\/)|(\b\d+\.?\d*\b)|(\b(?:var|let|const|if|else|for|while|function|return|async|await|class|new|import|export|default|switch|case|break|continue|try|catch|throw|typeof|instanceof|in|of|do|yield|delete|void|static|get|set|extends|super|this|null|undefined|true|false)\b)/g;
+
+  html = html.replace(pattern, (m, str, lineC, blockC, num, kw) => {
+    if (str)     return '<span class="string">' + str + '</span>';
+    if (lineC)   return '<span class="comment">' + lineC + '</span>';
+    if (blockC)  return '<span class="comment">' + blockC + '</span>';
+    if (num)     return '<span class="number">' + num + '</span>';
+    if (kw)      return '<span class="keyword">' + kw + '</span>';
+    return m;
+  });
+
+  if (code.endsWith('\n')) html += ' ';
+  return html;
+}
+
+function update() {
+  pre.innerHTML = highlight(ta.value);
+}
+
+ta.addEventListener('input', update);
+ta.addEventListener('scroll', () => {
+  pre.scrollTop = ta.scrollTop;
+  pre.scrollLeft = ta.scrollLeft;
+});
+
+function runCode() {
+  out.textContent = '';
+  const origLog = console.log;
+  const origErr = console.error;
+  console.log = (...args) => {
+    out.textContent += args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ') + '\n';
+    origLog(...args);
+  };
+  console.error = (...args) => {
+    out.textContent += args.map(String).join(' ') + '\n';
+    origErr(...args);
+  };
+  try {
+    eval(ta.value);
+  } catch (e) {
+    out.textContent += 'Error: ' + e.message + '\n';
+  }
+  console.log = origLog;
+  console.error = origErr;
+}
+
+update();
+</script>
+
+</body>
+</html>
