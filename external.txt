@@ -1,0 +1,8 @@
+# Upload-Byte
+# @scripting-studios101
+
+R: jsε
+F: external.txt
+P: jse/external.txt
+
+(c) 2026 The Mancini Workshop TM | All Rights Reserved
